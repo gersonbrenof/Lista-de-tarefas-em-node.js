@@ -1,3 +1,4 @@
+const tarefaRespositories = require("../repositories/tarefa.respositories");
 const TarefaService = require("../services/tarefa.service");
 class TarefaController{
     async lista_id(request, response){
@@ -54,23 +55,39 @@ class TarefaController{
             }
         }
 
-        async concluir(request, response){
-            try{
-            const {id} = request.params;
-             if(!id){
-                 return response.status(400).json({error: "Id da tarefa é obrigaorio"})
+        async concluir(request, response) {
+        try {
+            const { id } = request.params;
+
+            if (!id) {
+            return response.status(400).json({ error: "Id da tarefa é obrigatório" });
             }
-            const tarefaAtulizada = await TarefaService.concluir_tarefa(Number(id));
-            return response.json({
-                message: "Tarefa concluida com sucesso",
-                tarefa: tarefaAtulizada
-            })
-            }catch (err){
-                console.error(`Erro no controller ao concluir a tarefa: ${err.message}`);
-                return response.status(500).json({ error: err.message });
+
+            const tarefaAtualizada = await TarefaService.concluir_tarefa(Number(id));
+
+            return response.status(200).json({
+            message: "Tarefa concluída com sucesso",
+            tarefa: tarefaAtualizada
+            });
+        } catch (err) {
+          const msg = err && err.message ? err.message.toLowerCase() : "";
+
+         console.error(`Erro no controller ao concluir a tarefa: ${err?.message || err}`);
+
+        if (msg.includes("não foi encontrada")) {
+            return response.status(404).json({ error: err?.message || "Tarefa não encontrada" });
+        }
+
+        if (msg.includes("ja foi concluida")) {
+            return response.status(409).json({ error: err?.message || "Tarefa já foi concluída" });
+        }
+
+        if (msg.includes("obrigatório")) {
+             return response.status(400).json({ error: err?.message || "ID obrigatório" });
+        }
+
+        return response.status(500).json({ error: "Erro interno no servidor" });
             }
-          
-        
         }
     } 
 

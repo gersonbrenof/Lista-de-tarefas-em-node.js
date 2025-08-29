@@ -1,3 +1,4 @@
+const tarefaRespositories = require("../repositories/tarefa.respositories");
 const TarefaRepositories = require("../repositories/tarefa.respositories")
 
 class TarefaService{
@@ -41,20 +42,25 @@ class TarefaService{
     }
 
     async concluir_tarefa(id){
-        try{
             if (!id){
                 throw new Error("o ID da tarefa e obrigatorio");
                 
             }
+               const tarefa = await tarefaRespositories.findById(id);
+            if(!tarefa){
+                throw new Error("Tarefa nao foi encontrada.")
+            }
+            // verifica se a atrefa ja foi ocncluida
+            if(tarefa.concluida){
+                throw new Error("A tarefa ja foi concluida.")
+            }
             // para altera o cmapo para true quadno for passad oncluir tarefa
-            const tarefaAtulizada = await TarefaRepositories.update(id ,{concluida: true})
+            const tarefaAtulizada = await tarefaRespositories.update(id ,{concluida: true})
+            
             if(!tarefaAtulizada){
                 throw new Error("tarefa nao encontrada")
             }
-        }catch (err){
-            console.error(`Erro ao concluir a tarefa: ${err.message}`)
-            throw new Error(`Não foi possível concluir a tarefa: ${err.message}`);
-        }
+      return tarefaAtulizada;
     }
 }
 module.exports = new TarefaService();
